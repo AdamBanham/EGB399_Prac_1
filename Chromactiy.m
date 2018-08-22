@@ -12,7 +12,7 @@ imB = imC(:,:,3);
 %get the sum array for ratio
 imY = imR+imG+imB;
 %calculate chromacity
-figure();
+figure(1);
 imr = imR ./imY;
 imshow(imr>colourThershold);
 pause;
