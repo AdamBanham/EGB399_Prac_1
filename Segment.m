@@ -8,6 +8,7 @@ imTest = imWork(1:400,:,:);
 imWork = imWork(400:1600,:,:);
 colourThershold = .5;
 Colours = ["Red","Green","Blue"];
+TestObjects = ["","",""];
 Q = [20 380; 200 380; 380 380; 20 200; 200 200; 200 20; 20 20; 380 200; 380 20];
 %Pract Exam Format
 %find bright colours on test sheet
@@ -21,8 +22,20 @@ for i = 1:3
     for j = 1:length(testBlobs.(Colours(i)))
         testBlobs.(Colours(i))(j).plot_box('b');
         testBlobs.(Colours(i))(j).plot('r*');
-    end  
+        %workout the type of shape of test objects
+        shapeType = WorkOutShape(testBlobs.(Colours(i))(j).circularity);
+        %workout what size the shape is
+        if testBlobs.(Colours(i))(j).area < 10000
+            shapeSize ="small";
+        else
+            shapeSize="large";
+        end
+        %print out the results    
+        fprintf("This shape is %s , it's a %s size and coloured as %s \n",shapeType,shapeSize,Colours(i));
+        TestObjects(end+1,1:3) = [Colours(i),shapeType,shapeSize];
+    end
 end
+
 disp('finished with test sheet');
 pause;
 %get a binary image of calibration marks
@@ -43,55 +56,48 @@ allShapes = redShapes | greenShapes;
 idisp(allShapes);
 disp('binary image of all other shapes');
 pause;
+%plot a centroid on each shape
 blobs = iblobs(allShapes,'boundary');
 blobs = blobs(2:end);
 blobs.plot('r*');
 pause;
+%plot a bounding box on each triangle
 idx = find(blobs.circularity < .71 & blobs.circularity > .6 );
-blobs(idx).plot_box('b');
+blobs(idx).plot_box('r');
 pause;
-
-
-% %show original image
-% figure(2)
-% idisp(imWork);
-% %Apply chromacticity to test pixels
-% [ chromacity ] = Chromactiy( imWork , colourThershold );
-% %use chromacity images to form blobs.[colour] struct for blobs found of
-% %that colour
-% for i = 1:3
-%     blobs.(Colours(i)) = iblobs(chromacity(:,:,i)>colourThershold,'area',[3000,22000], 'boundary');
-%     
-% end
-% 
-% %show each boundary box for blue blobs
-% %idisp(chromacity(:,:,3)>colourThershold);
-% % % idisp(im)
-% % % blobs.Blue.plot_box('b');
-% % % blobs.Blue.plot('b*');
-% % % pause;
-% % % idisp(im)
-% % % blobs.Red.plot_box('r');
-% % % blobs.Red.plot('r*');
-% % % pause;
-% % % idisp(im)
-% % % blobs.Green.plot_box('g');
-% % % blobs.Green.plot('g*');
-% % % pause;
-% 
-% %sort coloured blobs into shapes.[shapetype].[colour] struct
-% [ Shapes ] = Circularity( blobs );
-% %display the largest red triangle
-% figure(3)
-% %display original image
-% idisp(imWork);
-% hold on;
-% %find the big red triagnle
-% [~ , idx] = max(Shapes.Triangle.Red.area);
-% %plot boundary box
-% Shapes.Triangle.Red(idx).plot_box();
-% 
-% %return the final image
+%plot a different box on each triangle
+Gblobs = iblobs(greenShapes,'boundary');
+Gblobs.plot_box('--g')
+pause;
+%work out which shapes match the test objects
+idisp(imWork);
+for i = 2:4
+    %find the colour of the object
+   if TestObjects(i,1) == "Red"
+       theShapes = redShapes;
+   elseif TestObjects(i,1) == "Green"
+       theShapes = greenShapes;
+   end
+  %if the test object was red
+  if TestObjects(i,3) == "large"
+      %find objects that are red and big
+      objects = iblobs(theShapes,'boundary','area',[10000,99999]);
+  else
+      %find objects that are red and small
+      objects = iblobs(theShapes,'boundary','area',[3000,9999]);
+  end
+  %now find the objects that have the right circularity and plot
+  if TestObjects(i,2) == "circle"
+      idx = find(objects.circularity >= .899);
+      objects(idx).plot_box('r');
+  elseif TestObjects(i,2) == "square"
+      idx = find(objects.circularity < .899 & objects.circularity >= .71);
+      objects(idx).plot_box('y');
+  else
+      idx = find(objects.circularity <= .71);
+      objects(idx).plot_box('g');
+  end
+end
 ReturnImage = imWork;
 end
 
