@@ -14,13 +14,13 @@ imY = imR+imG+imB;
 %calculate chromacity
 figure(1);
 imr = imR ./imY;
-imshow(imr>colourThershold);
-pause;
+%imshow(imr>colourThershold);
+%pause;
 img = imG./imY;
-imshow(img>colourThershold);
-pause;
+%imshow(img>colourThershold);
+%pause;
 imb = imB./imY;
-imshow(imb>colourThershold);
+%imshow(imb>colourThershold);
 
 chromacity(:,:,1) = imr;
 chromacity(:,:,2) = img;

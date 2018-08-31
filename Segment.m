@@ -27,7 +27,13 @@ disp('finished with test sheet');
 pause;
 %get a binary image of calibration marks
 [ chroWork ] = Chromactiy( imWork , colourThershold );
-idisp(chroWork(:,:,3) > colourThershold);
+for i = 1:3
+chroWork(:,:,i) = medfilt2(chroWork(:,:,i) , [4 4]);
+end
+Circles = chroWork(:,:,3) > colourThershold;
+imshow(Circles);
+%Circles = iblobs(Circles,'area',[3000,22000], 'boundary')
+
 disp('Segmented the blue calibration marks on the work sheet');
 pause;
 %display binary image of all other shapes
