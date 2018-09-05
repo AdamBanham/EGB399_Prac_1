@@ -25,13 +25,21 @@ for i = 1:3
         %workout the type of shape of test objects
         shapeType = WorkOutShape(testBlobs.(Colours(i))(j).circularity);
         %workout what size the shape is
-        if testBlobs.(Colours(i))(j).area < 10000
-            shapeSize ="small";
+        if shapeType == "TRIANGLE"
+            if testBlobs.(Colours(i))(j).area < 5999
+                shapeSize ="SMALL";
+            else
+                shapeSize="LARGE";
+            end
         else
-            shapeSize="large";
+            if testBlobs.(Colours(i))(j).area < 8999
+                shapeSize ="SMALL";
+            else
+                shapeSize="LARGE";
+            end
         end
         %print out the results    
-        fprintf("This shape is %s , it's a %s size and coloured as %s \n",shapeType,shapeSize,Colours(i));
+        fprintf("This shape is %s , it's a %s size and coloured %s \n",shapeType,shapeSize,Colours(i));
         TestObjects(end+1,1:3) = [Colours(i),shapeType,shapeSize];
     end
 end
@@ -52,22 +60,25 @@ pause;
 %display binary image of all other shapes
 redShapes = chroWork(:,:,1) > colourThershold;
 greenShapes = chroWork(:,:,2) > colourThershold;
-allShapes = redShapes | greenShapes;
+allShapes = (redShapes | greenShapes);
 idisp(allShapes);
-disp('binary image of all other shapes');
+disp('Now showing a binary image of all other shapes');
 pause;
 %plot a centroid on each shape
-blobs = iblobs(allShapes,'boundary');
-blobs = blobs(2:end);
+blobs = iblobs(allShapes,'boundary','area',[1500,99999]);
+blobs = blobs(1:end);
 blobs.plot('r*');
+disp('Now showing a centroid for each found shape');
 pause;
 %plot a bounding box on each triangle
 idx = find(blobs.circularity < .71 & blobs.circularity > .6 );
 blobs(idx).plot_box('r');
+disp('Now showing a bounding box on each triangle');
 pause;
-%plot a different box on each triangle
+%plot a different box on green shape
 Gblobs = iblobs(greenShapes,'boundary');
 Gblobs.plot_box('--g')
+disp('Now showing a different bounding box on each green shape');
 pause;
 %work out which shapes match the test objects
 idisp(imWork);
@@ -79,19 +90,29 @@ for i = 2:4
        theShapes = greenShapes;
    end
   %if the test object was red
-  if TestObjects(i,3) == "large"
-      %find objects that are red and big
-      objects = iblobs(theShapes,'boundary','area',[10000,99999]);
+  if TestObjects(i,3) == "LARGE"
+      % use a different comparision for triangles and another for other shapes
+      if TestObjects(i,2) == "TRIANGLE"
+          objects = iblobs(theShapes,'boundary','area',[6000,99999]);
+      else
+          %find objects that are red and big
+          objects = iblobs(theShapes,'boundary','area',[9000,99999]);
+      end
   else
-      %find objects that are red and small
-      objects = iblobs(theShapes,'boundary','area',[3000,9999]);
+      % use a different comparision for triangles and another for other shapes
+      if TestObjects(i,2) == "TRIANGLE"
+          objects = iblobs(theShapes,'boundary','area',[1500,4999]);
+      else
+          %find objects that are red and small
+          objects = iblobs(theShapes,'boundary','area',[3000,8999]);
+      end
   end
   %now find the objects that have the right circularity and plot
-  if TestObjects(i,2) == "circle"
-      idx = find(objects.circularity >= .899);
+  if TestObjects(i,2) == "CIRCLE"
+      idx = find(objects.circularity >= .91);
       objects(idx).plot_box('r');
-  elseif TestObjects(i,2) == "square"
-      idx = find(objects.circularity < .899 & objects.circularity >= .71);
+  elseif TestObjects(i,2) == "SQUARE"
+      idx = find(objects.circularity < .91 & objects.circularity >= .71);
       objects(idx).plot_box('y');
   else
       idx = find(objects.circularity <= .71);
