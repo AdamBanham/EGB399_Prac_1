@@ -1,0 +1,23 @@
+function [Number] = NeedleCount(imgAddress)
+%UNTITLED2 Counts the number of needles in a given picture
+%   Detailed explanation goes here
+Number = 0;
+img = iread(imgAddress,'grey','uint8');
+% test the image levels
+%ihist(img);
+
+%test to work out where the rings of the caps are
+% figure()
+% idisp(img < 50 )
+% figure()
+% idisp(img > 100 & img < 150)
+% figure()
+% idisp( img > 150 )
+% rings of the caps are above ~150 of brightness
+
+%clean img 
+correctedImg = medfilt2(img>170,[5 5]);
+idisp(correctedImg)
+
+end
+
