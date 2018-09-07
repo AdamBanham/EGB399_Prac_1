@@ -126,5 +126,15 @@ end
 
 %% Find the real world distances of the tested objects
 ReturnImage = imWork;
+blueBlobs = iblobs(Circles,'area',[3000,22000], 'boundary');
+H = CalcHom(blueBlobs);
+
+
+for i = 2:4
+
+    shapePosition = ShapeHomPosition(H, testBlobs(i));
+    
+    disp(shapePosition);
+end
 end
 

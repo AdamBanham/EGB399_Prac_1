@@ -1,4 +1,5 @@
 function pos = ShapeHomPosition(H, blob)
-    p = blob.p;
+    p = [blob.uc, blob.vc];
+    disp(p);
     pos = homtrans(H, p');
 end
