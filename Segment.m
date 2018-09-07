@@ -1,4 +1,4 @@
-function [ ReturnImage , blobs ] = Segment ( WorkSheet  )
+function [ ReturnImage ] = Segment ( WorkSheet  )
 %Segment loads a image and returns segment or highlights sections of a
 %image
 %   ReturnImage is the final image after image processing is handled
@@ -81,6 +81,7 @@ Gblobs.plot_box('--g')
 disp('Now showing a different bounding box on each green shape');
 pause;
 %work out which shapes match the test objects
+testBlobs = RegionFeature(); % stores the information about test shapes
 idisp(imWork);
 for i = 2:4
     %find the colour of the object
@@ -111,14 +112,19 @@ for i = 2:4
   if TestObjects(i,2) == "CIRCLE"
       idx = find(objects.circularity >= .91);
       objects(idx).plot_box('r');
+      testBlobs(end+1) = objects(idx);
   elseif TestObjects(i,2) == "SQUARE"
       idx = find(objects.circularity < .91 & objects.circularity >= .71);
       objects(idx).plot_box('y');
+      testBlobs(end+1) = objects(idx);
   else
       idx = find(objects.circularity <= .71);
       objects(idx).plot_box('g');
+      testBlobs(end+1) = objects(idx);
   end
 end
+
+%% Find the real world distances of the tested objects
 ReturnImage = imWork;
 end
 
