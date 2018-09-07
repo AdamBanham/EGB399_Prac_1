@@ -4,7 +4,7 @@ function shapeType = WorkOutShape (circularity)
 %"square"
 %"triangle"
 
-if circularity > .91
+if circularity > .93
     shapeType = "CIRCLE";
 elseif  circularity > .71
     shapeType = "SQUARE";

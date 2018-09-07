@@ -4,8 +4,10 @@ function [ ReturnImage ] = Segment ( WorkSheet  )
 %   ReturnImage is the final image after image processing is handled
 %   blobs is the image segmentation object returned after processing
 imWork = imread(WorkSheet);
-imTest = imWork(1:400,:,:);
-imWork = imWork(400:1600,:,:);
+[r,c] = size(imWork);
+img_cutoff = r*.15;
+imTest = imWork(1:img_cutoff,:,:);
+imWork = imWork(img_cutoff:end,:,:);
 colourThershold = .5;
 Colours = ["Red","Green","Blue"];
 TestObjects = ["","",""];
@@ -17,22 +19,32 @@ Q = [20 380; 200 380; 380 380; 20 200; 200 200; 200 20; 20 20; 380 200; 380 20];
 idisp(imTest);
 %for each colour find shapes and return bounding box if found
 % 'area',[55646,2258168]
-for i = 1:3
-    testBlobs.(Colours(i)) = iblobs(chroTest(:,:,i)>colourThershold,'area',[3000,22000], 'boundary');
+
+% work out average area for shapes
+thersholdImg = (chroTest(:,:,1)>colourThershold | chroTest(:,:,2)>colourThershold | chroTest(:,:,3)>colourThershold);
+areaTest = iblobs(thersholdImg,'area',[1000,45000],'boundary');
+averageArea = mean(areaTest.area);
+
+for i = 1:2
+    testBlobs.(Colours(i)) = iblobs(chroTest(:,:,i)>colourThershold,'area',[1000,35000], 'boundary','connect',8);
+    
     for j = 1:length(testBlobs.(Colours(i)))
+        
         testBlobs.(Colours(i))(j).plot_box('b');
         testBlobs.(Colours(i))(j).plot('r*');
         %workout the type of shape of test objects
         shapeType = WorkOutShape(testBlobs.(Colours(i))(j).circularity);
         %workout what size the shape is
+        %disp(testBlobs.(Colours(i))(j).area)
         if shapeType == "TRIANGLE"
-            if testBlobs.(Colours(i))(j).area < 5999
+            
+            if testBlobs.(Colours(i))(j).area < averageArea*.5
                 shapeSize ="SMALL";
             else
                 shapeSize="LARGE";
             end
         else
-            if testBlobs.(Colours(i))(j).area < 8999
+            if testBlobs.(Colours(i))(j).area < averageArea
                 shapeSize ="SMALL";
             else
                 shapeSize="LARGE";
@@ -65,13 +77,13 @@ idisp(allShapes);
 disp('Now showing a binary image of all other shapes');
 pause;
 %plot a centroid on each shape
-blobs = iblobs(allShapes,'boundary','area',[1500,99999]);
+blobs = iblobs(allShapes,'boundary','area',[1000,45000],'connect',8);
 blobs = blobs(1:end);
 blobs.plot('r*');
 disp('Now showing a centroid for each found shape');
 pause;
 %plot a bounding box on each triangle
-idx = find(blobs.circularity < .71 & blobs.circularity > .6 );
+idx = find(blobs.circularity < .74 );
 blobs(idx).plot_box('r');
 disp('Now showing a bounding box on each triangle');
 pause;
@@ -94,31 +106,32 @@ for i = 2:4
   if TestObjects(i,3) == "LARGE"
       % use a different comparision for triangles and another for other shapes
       if TestObjects(i,2) == "TRIANGLE"
-          objects = iblobs(theShapes,'boundary','area',[6000,99999]);
+          
+          objects = iblobs(theShapes,'boundary','area',[averageArea*.5,45000],'connect',8);
       else
           %find objects that are red and big
-          objects = iblobs(theShapes,'boundary','area',[9000,99999]);
+          objects = iblobs(theShapes,'boundary','area',[averageArea,45000],'connect',8);
       end
   else
       % use a different comparision for triangles and another for other shapes
       if TestObjects(i,2) == "TRIANGLE"
-          objects = iblobs(theShapes,'boundary','area',[1500,4999]);
+          objects = iblobs(theShapes,'boundary','area',[1000,averageArea*.5],'connect',8);
       else
           %find objects that are red and small
-          objects = iblobs(theShapes,'boundary','area',[3000,8999]);
+          objects = iblobs(theShapes,'boundary','area',[1000,averageArea],'connect',8);
       end
   end
   %now find the objects that have the right circularity and plot
   if TestObjects(i,2) == "CIRCLE"
-      idx = find(objects.circularity >= .91);
+      idx = find(objects.circularity >= .93);
       objects(idx).plot_box('r');
       testBlobs(end+1) = objects(idx);
   elseif TestObjects(i,2) == "SQUARE"
-      idx = find(objects.circularity < .91 & objects.circularity >= .71);
+      idx = find(objects.circularity < .93 & objects.circularity > .74);
       objects(idx).plot_box('y');
       testBlobs(end+1) = objects(idx);
   else
-      idx = find(objects.circularity <= .71);
+      idx = find(objects.circularity <= .74);
       objects(idx).plot_box('g');
       testBlobs(end+1) = objects(idx);
   end
