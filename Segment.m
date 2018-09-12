@@ -67,8 +67,9 @@ chroWork(:,:,i) = medfilt2(chroWork(:,:,i) , [4 4]);
 end
 Circles = chroWork(:,:,3) > colourThershold;
 imshow(Circles);
-%Circles = iblobs(Circles,'area',[3000,22000], 'boundary')
-
+circle_blobs = iblobs(Circles,'area',[1000,22000], 'boundary');
+circle_blobs.plot('*b');
+circle_blobs.plot_box('b');
 disp('Segmented the blue calibration marks on the work sheet');
 pause;
 %display binary image of all other shapes
@@ -96,7 +97,8 @@ disp('Now showing a different bounding box on each green shape');
 pause;
 %work out which shapes match the test objects
 testBlobs = RegionFeature(); % stores the information about test shapes
-idisp(imWork);
+test_background = allShapes > 3;
+idisp(test_background);
 for i = 2:4
     %find the colour of the object
    if TestObjects(i,1) == "Red"
@@ -123,22 +125,38 @@ for i = 2:4
           objects = iblobs(theShapes,'boundary','area',[1000,averageArea],'connect',8);
       end
   end
+  
   %now find the objects that have the right circularity and plot
   if TestObjects(i,2) == "CIRCLE"
       idx = find(objects.circularity >= .93);
-      objects(idx).plot_box('k');
       testBlobs(end+1) = objects(idx);
   elseif TestObjects(i,2) == "SQUARE"
       idx = find(objects.circularity < .93 & objects.circularity > .74);
-      objects(idx).plot_box('k');
       testBlobs(end+1) = objects(idx);
   else
       idx = find(objects.circularity <= .74);
-      objects(idx).plot_box('k');
       testBlobs(end+1) = objects(idx);
   end
+  %update the background image with the shapes points
+  [r,c] = size(allShapes);
+  shape = zeros(r,c);
+  bounding_box = testBlobs(end).box();
+  %check inside the bounding box for where the shape was detected
+  for row = bounding_box(2,1):bounding_box(2,2)
+     for column = bounding_box(1,1):bounding_box(1,2)
+             %test that the shape is detected at this point
+             if (allShapes(row,column) == 1 )
+                shape(row,column) = 1;
+             end
+     end
+  end
+  %add the shape to back ground image
+  test_background = test_background + shape;
+  idisp(test_background)
   fprintf("this is the bounding box for test shape %d , it is a %s sized %s and coloured %s\n",...
            i-1,TestObjects(i,2),TestObjects(i,3),TestObjects(i,1));
+  testBlobs(2:end).plot('*r');
+  testBlobs(2:end).plot_box('r');
   pause;
 end
 
