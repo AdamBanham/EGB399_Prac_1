@@ -6,6 +6,8 @@ function [ ReturnImage ] = Segment ( WorkSheet  )
 imWork = imread(WorkSheet);
 [r,c] = size(imWork);
 img_cutoff = r*.15;
+%spilt image into top section for test objects
+% and bottom section for worksheet
 imTest = imWork(1:img_cutoff,:,:);
 imWork = imWork(img_cutoff:end,:,:);
 colourThershold = .5;
@@ -124,17 +126,20 @@ for i = 2:4
   %now find the objects that have the right circularity and plot
   if TestObjects(i,2) == "CIRCLE"
       idx = find(objects.circularity >= .93);
-      objects(idx).plot_box('r');
+      objects(idx).plot_box('k');
       testBlobs(end+1) = objects(idx);
   elseif TestObjects(i,2) == "SQUARE"
       idx = find(objects.circularity < .93 & objects.circularity > .74);
-      objects(idx).plot_box('y');
+      objects(idx).plot_box('k');
       testBlobs(end+1) = objects(idx);
   else
       idx = find(objects.circularity <= .74);
-      objects(idx).plot_box('g');
+      objects(idx).plot_box('k');
       testBlobs(end+1) = objects(idx);
   end
+  fprintf("this is the bounding box for test shape %d , it is a %s sized %s and coloured %s\n",...
+           i-1,TestObjects(i,2),TestObjects(i,3),TestObjects(i,1));
+  pause;
 end
 
 %% Find the real world distances of the tested objects
@@ -145,7 +150,7 @@ H = CalcHom(blueBlobs);
 
 for i = 2:4
     shapePosition = ShapeHomPosition(H, testBlobs(i));
-    fprintf("%s %s %s position: x=%f, y=%f \n", TestObjects(i, 1), TestObjects(i, 2), TestObjects(i, 3), shapePosition(1), shapePosition(2));
+    fprintf("%s %s %s position: x=%f, y=%f \n", TestObjects(i, 3), TestObjects(i, 1), TestObjects(i, 2), shapePosition(1), shapePosition(2));
 end
 end
 
